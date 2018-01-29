@@ -1,7 +1,7 @@
 const {MongoClient, ObjectID} = require('mongodb');
 
 var obj = new ObjectID();
-console.log(obj);
+console.log(obj); // Has timestamp, machine, random number
 
 
 MongoClient.connect('mongodb://localhost:27017/', (err, client) => {
