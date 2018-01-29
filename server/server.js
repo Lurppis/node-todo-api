@@ -1,9 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-var {mongoose} = require('./db/mongoose.js');
-var {Todo} = require('./models/todo');
-var {User} = require('./models/user');
+var { mongoose } = require('./db/mongoose.js');
+var { Todo } = require('./models/todo');
+var { User } = require('./models/user');
 
 const app = express();
 
@@ -22,8 +22,10 @@ app.post('/todos', (req, res) => {
 });
 
 
-app.listen(3000, () => {
-	console.log('App listening on port port!');
+var server = app.listen(3000, () => {
+	console.log('Example app listening on port 3000!');
 });
+
+module.exports = { app: app, server: server };
 
 //Run app, then load http://localhost:port in a browser to see the output.
