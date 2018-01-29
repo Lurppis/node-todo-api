@@ -1,48 +1,29 @@
-var mongoose = require('mongoose');
-const dbName = 'TodoApp';
+const express = require('express');
+const bodyParser = require('body-parser');
 
-mongoose.Promise = global.Promise;
-mongoose.connect(`mongodb://localhost:27017/${dbName}`);
+var {mongoose} = require('./db/mongoose.js');
+var {Todo} = require('./models/todo');
+var {User} = require('./models/user');
+
+const app = express();
+
+app.use(bodyParser.json()); // Setting up our middleware 
 
 
-// In future move it to Shemas folder and use it 
-var Todo = mongoose.model('Todo', {
-	text: {
-		type: String,
-		require: true,
-		minlength: 1,
-		trim: true
-	},
-	completed: {
-		type: Boolean,
-		default: false
-	},
-	completedAt: {
-		type: Number,
-		default: null
-	}
+app.post('/todos', (req, res) => {
+	var newTodo = new Todo({
+		text: req.body.text
+	});
+	newTodo.save().then((doc) => {
+		res.status(201).send(doc);
+	}, (err) => {
+		res.status(400).send(err);
+	});
 });
 
-var newTodo = new Todo({
-	text: 'Cook dinnet'
+
+app.listen(3000, () => {
+	console.log('App listening on port port!');
 });
 
-var newTodo2 = Todo({
-	text: 'Test',
-	completed: false,
-	completedAt: 0
-});
-
-newTodo.save().then((res) => {
-	console.log(res);
-}, (err) => {
-	console.log('Unable to save task', err);
-});
-
-newTodo2.save().then((res) => {
-	console.log('Saved ', JSON.stringify(res,undefined,2));
-}, (err) => {
-	console.log('Unable to save', err);
-});
-
-//mongoose.disconnect();
+//Run app, then load http://localhost:port in a browser to see the output.
