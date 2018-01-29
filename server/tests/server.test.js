@@ -35,6 +35,7 @@ describe('Positive test server', () => {
 	});
 
 });
+
 describe('Negative test server', () => {
 
 	it('Should not create new todo with bad data', (done) => {

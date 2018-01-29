@@ -9,7 +9,6 @@ const app = express();
 
 app.use(bodyParser.json()); // Setting up our middleware 
 
-
 app.post('/todos', (req, res) => {
 	var newTodo = new Todo({
 		text: req.body.text
@@ -20,7 +19,6 @@ app.post('/todos', (req, res) => {
 		res.status(400).send(err);
 	});
 });
-
 
 var server = app.listen(3000, () => {
 	console.log('Example app listening on port 3000!');

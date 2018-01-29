@@ -1,5 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
 const dbName = 'Todos';
+
 MongoClient.connect('mongodb://localhost:27017/', (err, client) => {
 	if (err) {
 		return console.log('Unable to connect MongoDB server.');

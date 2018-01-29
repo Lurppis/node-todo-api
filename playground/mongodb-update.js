@@ -1,16 +1,17 @@
-const {MongoClient, ObjectID} = require('mongodb');
+const { MongoClient, ObjectID } = require('mongodb');
 
 const dbName = 'Todos';
 const collectionName = 'Todos';
 
 MongoClient.connect('mongodb://localhost/', (err, client) => {
-	if(err) return console.log('Unable to connect to database: ' + err);
-	
+	if (err) return console.log('Unable to connect to database: ' + err);
+
 	console.log('Successfully connected!');
-	
+
 	// Update document with id #5a6ed419cf2c4704608bb156
 	client.db(dbName).collection(collectionName).findOneAndUpdate({
-		_id: new ObjectID('5a6ed419cf2c4704608bb156')}, {
+		_id: new ObjectID('5a6ed419cf2c4704608bb156')
+	}, {
 		$set: {
 			text: 'Something to not to do'
 		}
@@ -41,8 +42,8 @@ MongoClient.connect('mongodb://localhost/', (err, client) => {
 	client.db(dbName).collection('Users').findOneAndUpdate({
 		name: 'Marcin'
 	}, {
-		$set: { name: 'Mariusz'},
-		$inc: {age: 2, 'dogs.bulldog': -3}
+		$set: { name: 'Mariusz' },
+		$inc: { age: 2, 'dogs.bulldog': -3 }
 	}).then((res) => {
 		console.log(res);
 	}, (err) => {

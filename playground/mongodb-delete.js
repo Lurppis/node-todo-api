@@ -37,7 +37,7 @@ MongoClient.connect('mongodb://localhost:27017/', (err, client) => {
 		}, (err) => {
 			console.log('Unable to delete:' + err);
 		});
-		
+
 	// Delete many
 	client.db(dbName).collection(collectionName).deleteMany({ name: 'Marcin' })
 		.then((res) => {
