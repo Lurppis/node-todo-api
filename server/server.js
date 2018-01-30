@@ -59,7 +59,7 @@ app.delete('/todos/:id', (req, res) => {
 		}
 		res.send(todo);
 	}, (err) => res.status(400).send(err));
-});
+}).catch((e) => res.send(e));
 
 var server = app.listen(port, () => {
 	console.log(`Example app listening on port ${port}!`);
