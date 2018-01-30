@@ -32,11 +32,11 @@ app.get('/todos', (req, res) => {
 
 app.get('/todos/:id', (req, res) => {
 	var id = req.params.id;
-	if(!ObjectID.isValid(id)) {
+	if (!ObjectID.isValid(id)) {
 		return res.status(404).send();
 	}
 	Todo.findById(id).then((todo) => {
-		if(!todo) {
+		if (!todo) {
 			return res.status(404).send();
 		}
 		res.send({ todo });
@@ -49,17 +49,19 @@ app.get('/todos/:id', (req, res) => {
 app.delete('/todos/:id', (req, res) => {
 	var id = req.params.id;
 	console.log(id);
-	if(!ObjectID.isValid(id)) {
+	if (!ObjectID.isValid(id)) {
 		return res.status(404).send();
 	}
 
 	Todo.findByIdAndRemove(id).then((todo) => {
-		if(!todo) {
+		if (!todo) {
 			return res.status(404).send();
 		}
 		res.send(todo);
-	}, (err) => res.status(400).send(err));
-}).catch((e) => res.send(e));
+	}, (err) => {
+		res.status(400).send(err);
+	}).catch((e) => res.send(e));
+});
 
 var server = app.listen(port, () => {
 	console.log(`Example app listening on port ${port}!`);
