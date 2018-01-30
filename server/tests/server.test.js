@@ -14,7 +14,9 @@ const dummyTodos = [
 		text: 'Second test todo'
 	}, {
 		_id: new ObjectID(),
-		text: 'Third test todo'
+		text: 'Third test todo',
+		completed: true,
+		completedAt: 123456789
 	}
 ];
 
@@ -114,7 +116,7 @@ describe('GET /todos/:id', () => {
 });
 
 describe('DELETE /todos', () => {
-	it('should remove todo', (done) => {
+	it('Should remove todo', (done) => {
 		var id = dummyTodos[0]._id.toHexString();
 
 		request(app)
@@ -160,5 +162,58 @@ describe('DELETE /todos', () => {
 				}
 				done();
 			});
+	});
+});
+
+describe('PATCH /todos/:id', () => {
+	it('Should update the todo', (done) => {
+		var id = dummyTodos[0]._id.toHexString();
+		var updatedText = 'Updated text';
+
+		request(app)
+			.patch(`/todos/${id}`)
+			.send({
+				text: updatedText,
+				completed: true
+			})
+			.expect(200)
+			.expect((res) => {
+				expect(res.body.todo.text).toBe(updatedText);
+				expect(res.body.todo.completed).toBe(true);
+				expect(res.body.todo.completedAt).toBeA('number');
+			})
+			.end(done);
+	});
+
+	it('Should clear completedAt when todo is false', (done) => {
+		var id = dummyTodos[2]._id.toHexString();
+		
+		request(app)
+			.patch(`/todos/${id}`)
+			.send({
+				completed: false
+			})
+			.expect(200)
+			.expect((res) => {
+				expect(res.body.todo.completedAt).toBe(null);
+				expect(res.body.todo.completed).toBe(false);
+			})
+			.end(done);
+	});
+
+	it('Should not update completedAt by force when completed false', (done) => {
+		var id = dummyTodos[0]._id.toHexString();
+
+		request(app)
+			.patch(`/todos/${id}`)
+			.send({
+				completedAt: 123
+			})
+			.expect((res) => {
+				expect(res.body.todo.completedAt).toBe(null);
+				expect(res.body.todo.completed).toBe(false);				
+			})
+			.expect(200)
+			.end(done);
 	});
 });
