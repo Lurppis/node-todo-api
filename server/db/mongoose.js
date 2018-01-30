@@ -7,7 +7,8 @@ let db = {
 };
 
 mongoose.Promise = global.Promise;
-mongoose.connect(db.localhost || db.mlab);
+//mongoose.connect(db.localhost || db.mlab); // For development purpose After will be configured in config.js
+mongoose.connect(db.mlab || db.localhost);
 
 module.exports = {
 	mongoose
