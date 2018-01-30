@@ -7,6 +7,7 @@ var { Todo } = require('./models/todo');
 var { User } = require('./models/user');
 
 const app = express();
+var port = process.env.PORT || 3000;
 
 app.use(bodyParser.json()); // Setting up our middleware 
 
@@ -45,10 +46,10 @@ app.get('/todos/:id', (req, res) => {
 
 });
 
-var server = app.listen(3000, () => {
-	console.log('Example app listening on port 3000!');
+var server = app.listen(port, () => {
+	console.log(`Example app listening on port ${port}!`);
 });
 
 module.exports = { app: app, server: server };
 
-//Run app, then load http://localhost:port in a browser to see the output.
+//Run app, then load http://localhost:3000 in a browser to see the output.
