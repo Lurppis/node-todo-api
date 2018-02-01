@@ -250,7 +250,7 @@ describe('POST /users', () => {
 					expect(user).toExist();
 					expect(user.password).toNotBe(newUser.password);
 					done();
-				});
+				}).catch((e) => done(e));
 			});
 	});
 
@@ -281,6 +281,56 @@ describe('POST /users', () => {
 			.expect((res) => {
 				expect(res.body.errmsg).toInclude('duplicate key error collection');
 			})
+			.end(done);
+	});
+});
+
+describe('POST /users/login', () => {
+	it('Should login and return auth token', (done) => {
+		var user = {
+			email: users[0].email,
+			password: users[0].password
+		};
+		request(app)
+			.post('/users/login')
+			.send(user)
+			.expect(200)
+			.expect((res) => {
+				expect(res.headers['x-auth']).toExist();
+			})
+			.end((err, res) => {
+				if(err) {
+					return done(err);
+				}
+
+				User.findById(users[0]._id).then((user) => {
+					expect(user.tokens[0].access).toBe('auth');
+					done();
+				}).catch((e) => done(e));
+			});
+	});
+
+	it('Should reject invalid login if user not found', (done) => {
+		var user = {
+			email: users[0].email + '1',
+			password: users[0].password
+		};
+		request(app)
+			.post('/users/login')
+			.send(user)
+			.expect(400)
+			.end(done);
+	});
+
+	it('Should reject invalid login if password is incorrect', (done) => {
+		var user = {
+			email: users[0].email,
+			password: users[0].password + '1'
+		};
+		request(app)
+			.post('/users/login')
+			.send(user)
+			.expect(400)
 			.end(done);
 	});
 });
