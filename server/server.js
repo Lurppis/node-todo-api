@@ -94,5 +94,3 @@ var server = app.listen(port, () => {
 });
 
 module.exports = { app: app, server: server };
-
-//Run app, then load http://localhost:3000 in a browser to see the output.
