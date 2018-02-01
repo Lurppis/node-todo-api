@@ -4,28 +4,12 @@ const { ObjectID } = require('mongodb');
 
 const { app } = require('../server');
 const { Todo } = require('../models/todo');
-
-const dummyTodos = [
-	{
-		_id: new ObjectID(),
-		text: 'First test todo'
-	}, {
-		_id: new ObjectID(),
-		text: 'Second test todo'
-	}, {
-		_id: new ObjectID(),
-		text: 'Third test todo',
-		completed: true,
-		completedAt: 123456789
-	}
-];
+const { User } = require('./../models/user');
+const { dummyTodos, populateTodos, populateUsers, users} = require('./seed/seed');
 
 // Will delete all documents to make sure that test will execute correctly
-beforeEach((done) => {
-	Todo.remove({}).then(() => {
-		return Todo.insertMany(dummyTodos);
-	}).then(() => done());
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
 	it('Should create new todo', (done) => {
@@ -40,7 +24,7 @@ describe('POST /todos', () => {
 			.expect((res) => {
 				expect(res.body.text).toBe(text);
 			})
-			.end((err, res) => {
+			.end((err) => {
 				if (err) {
 					return done(err);
 				}
@@ -60,7 +44,7 @@ describe('POST /todos', () => {
 				text: emptyText
 			})
 			.expect(400)
-			.end((err, res) => {
+			.end((err) => {
 				if (err) return done(err);
 
 				Todo.find((todos) => {
@@ -125,7 +109,7 @@ describe('DELETE /todos', () => {
 			.expect((res) => {
 				expect(res.body.todo._id).toBe(id);
 			})
-			.end((err, res) => {
+			.end((err) => {
 				if (err) {
 					return done(err);
 				}
@@ -142,7 +126,7 @@ describe('DELETE /todos', () => {
 		request(app)
 			.delete(`/todos/${id}`)
 			.expect(404)
-			.end((err, res) => {
+			.end((err) => {
 				if (err) {
 					return done(err);
 				}
@@ -156,7 +140,7 @@ describe('DELETE /todos', () => {
 		request(app)
 			.delete(`/todos/${id}`)
 			.expect(404)
-			.end((err, res) => {
+			.end((err) => {
 				if (err) {
 					return done(err);
 				}
@@ -214,6 +198,89 @@ describe('PATCH /todos/:id', () => {
 				expect(res.body.todo.completed).toBe(false);				
 			})
 			.expect(200)
+			.end(done);
+	});
+});
+
+describe('GET /users/me', () => {
+	it('Should return user if authenticate', (done) => {
+		request(app)
+			.get('/users/me')
+			.set('x-auth', users[0].tokens[0].token)
+			.expect(200)
+			.expect((res) => {
+				expect(res.body._id).toBe(users[0]._id.toHexString());
+				expect(res.body.email).toBe(users[0].email);
+			})
+			.end(done);
+	});
+
+	it('Should return 401 if no authenticated', (done) => {
+		request(app)
+			.get('/users/me')
+			.expect(401)
+			.expect((res) => {
+				expect(res.body).toEqual({});
+			})
+			.end(done);
+	});
+});
+
+describe('POST /users', () => {
+	it('Should create user', (done) => {
+		var newUser = {
+			email: 'newUser@example.com',
+			password: 'test12345'
+		};
+		request(app)
+			.post('/users')
+			.send(newUser)
+			.expect(200)
+			.expect((res) => {
+				expect(res.body.email).toBe(newUser.email);
+				expect(res.headers['x-auth']).toExist();
+				expect(res.body._id).toExist();
+			})
+			.end((err) => {
+				if(err) {
+					return done(err);
+				}
+
+				User.findOne({email: newUser.email}).then((user) => {
+					expect(user).toExist();
+					expect(user.password).toNotBe(newUser.password);
+					done();
+				});
+			});
+	});
+
+	it('Should return validation error if request invalid', (done) => {
+		var newUser = {
+			email: 'newUser@example.com',
+			password: 'test'
+		};
+
+		request(app)
+			.post('/users')
+			.send(newUser)
+			.expect(400)
+			.expect((res) => {
+				expect(res.body.errors.password.name).toBe('ValidatorError');
+				expect(res.body.errors.password.message).toInclude('is shorter than the minimum allowed length');				
+			})
+			.end(done);
+	});
+
+	it('Should not create user if email is used', (done) => {
+		var newUser = users[0];
+
+		request(app)
+			.post('/users')
+			.send(newUser)
+			.expect(400)
+			.expect((res) => {
+				expect(res.body.errmsg).toInclude('duplicate key error collection');
+			})
 			.end(done);
 	});
 });
