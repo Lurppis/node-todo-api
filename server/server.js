@@ -90,7 +90,7 @@ app.patch('/todos/:id', (req, res) => {
 });
 
 var server = app.listen(port, () => {
-	console.log(`Example app listening on port ${port}!`);
+	console.log(`Example app listening on port: ${port}!`);
 });
 
 module.exports = { app: app, server: server };
