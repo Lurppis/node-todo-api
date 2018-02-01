@@ -26,7 +26,8 @@
     "express": "^4.16.2",
     "lodash": "^4.17.4",
     "mongodb": "^3.0.1",
-    "mongoose": "^5.0.2"
+    "mongoose": "^5.0.2",
+    "validator": "^9.4.0"
   },
   "devDependencies": {
     "eslint": "^4.16.0",

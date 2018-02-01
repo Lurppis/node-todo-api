@@ -89,6 +89,17 @@ app.patch('/todos/:id', (req, res) => {
 		});
 });
 
+app.post('/users', (req, res) =>{
+	var body = _.pick(req.body, ['email', 'password']);
+	var newUser = new User(body);
+
+	newUser.save().then((user) => {
+		res.status(201).send(user);
+	}).catch((e) => {
+		res.status(400).send(e);
+	});
+});
+
 var server = app.listen(port, () => {
 	console.log(`Example app listening on port: ${port}!`);
 });
