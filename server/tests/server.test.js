@@ -5,7 +5,7 @@ const { ObjectID } = require('mongodb');
 const { app } = require('../server');
 const { Todo } = require('../models/todo');
 const { User } = require('./../models/user');
-const { dummyTodos, populateTodos, populateUsers, users} = require('./seed/seed');
+const { dummyTodos, populateTodos, populateUsers, users } = require('./seed/seed');
 
 // Will delete all documents to make sure that test will execute correctly
 beforeEach(populateUsers);
@@ -17,6 +17,7 @@ describe('POST /todos', () => {
 
 		request(app)
 			.post('/todos')
+			.set('x-auth', users[0].tokens[0].token)
 			.send({
 				text
 			})
@@ -37,12 +38,10 @@ describe('POST /todos', () => {
 	});
 
 	it('Should not create new todo with bad data', (done) => {
-		var emptyText = '';
 		request(app)
 			.post('/todos')
-			.send({
-				text: emptyText
-			})
+			.set('x-auth', users[0].tokens[0].token)
+			.send({ text: '' })
 			.expect(400)
 			.end((err) => {
 				if (err) return done(err);
@@ -61,9 +60,10 @@ describe('GET /todos', () => {
 	it('Should return all todos', (done) => {
 		request(app)
 			.get('/todos')
+			.set('x-auth', users[0].tokens[0].token)
 			.expect(200)
 			.expect((res) => {
-				expect(res.body.todos.length).toBe(dummyTodos.length);
+				expect(res.body.todos.length).toBe(2);
 			})
 			.end(done);
 	});
@@ -75,6 +75,7 @@ describe('GET /todos/:id', () => {
 		var id = dummyTodos[0]._id.toHexString();
 		request(app)
 			.get(`/todos/${id}`)
+			.set('x-auth', users[0].tokens[0].token)
 			.expect(200)
 			.expect((res) => {
 				expect(res.body.todo.text).toBe(dummyTodos[0].text);
@@ -86,6 +87,7 @@ describe('GET /todos/:id', () => {
 		var id = new ObjectID().toHexString();
 		request(app)
 			.get(`/todos/${id}`)
+			.set('x-auth', users[0].tokens[0].token)
 			.expect(404)
 			.end(done);
 	});
@@ -94,17 +96,28 @@ describe('GET /todos/:id', () => {
 		var id = 'qwert123456';
 		request(app)
 			.get(`/todos/${id}`)
+			.set('x-auth', users[0].tokens[0].token)
+			.expect(404)
+			.end(done);
+	});
+
+	it('Should not return todo doc created by other user', (done) => {
+		var id = dummyTodos[1]._id.toHexString();
+		request(app)
+			.get(`/todos/${id}`)
+			.set('x-auth', users[0].tokens[0].token)
 			.expect(404)
 			.end(done);
 	});
 });
 
-describe('DELETE /todos', () => {
+describe('DELETE /todos/:id', () => {
 	it('Should remove todo', (done) => {
 		var id = dummyTodos[0]._id.toHexString();
 
 		request(app)
 			.delete(`/todos/${id}`)
+			.set('x-auth', users[0].tokens[0].token)
 			.expect(200)
 			.expect((res) => {
 				expect(res.body.todo._id).toBe(id);
@@ -125,6 +138,7 @@ describe('DELETE /todos', () => {
 
 		request(app)
 			.delete(`/todos/${id}`)
+			.set('x-auth', users[0].tokens[0].token)
 			.expect(404)
 			.end((err) => {
 				if (err) {
@@ -139,6 +153,7 @@ describe('DELETE /todos', () => {
 
 		request(app)
 			.delete(`/todos/${id}`)
+			.set('x-auth', users[0].tokens[0].token)
 			.expect(404)
 			.end((err) => {
 				if (err) {
@@ -156,6 +171,7 @@ describe('PATCH /todos/:id', () => {
 
 		request(app)
 			.patch(`/todos/${id}`)
+			.set('x-auth', users[0].tokens[0].token)
 			.send({
 				text: updatedText,
 				completed: true
@@ -171,9 +187,10 @@ describe('PATCH /todos/:id', () => {
 
 	it('Should clear completedAt when todo is false', (done) => {
 		var id = dummyTodos[2]._id.toHexString();
-		
+
 		request(app)
 			.patch(`/todos/${id}`)
+			.set('x-auth', users[0].tokens[0].token)
 			.send({
 				completed: false
 			})
@@ -190,12 +207,13 @@ describe('PATCH /todos/:id', () => {
 
 		request(app)
 			.patch(`/todos/${id}`)
+			.set('x-auth', users[0].tokens[0].token)
 			.send({
 				completedAt: 123
 			})
 			.expect((res) => {
 				expect(res.body.todo.completedAt).toBe(null);
-				expect(res.body.todo.completed).toBe(false);				
+				expect(res.body.todo.completed).toBe(false);
 			})
 			.expect(200)
 			.end(done);
@@ -242,11 +260,11 @@ describe('POST /users', () => {
 				expect(res.body._id).toExist();
 			})
 			.end((err) => {
-				if(err) {
+				if (err) {
 					return done(err);
 				}
 
-				User.findOne({email: newUser.email}).then((user) => {
+				User.findOne({ email: newUser.email }).then((user) => {
 					expect(user).toExist();
 					expect(user.password).toNotBe(newUser.password);
 					done();
@@ -266,7 +284,7 @@ describe('POST /users', () => {
 			.expect(400)
 			.expect((res) => {
 				expect(res.body.errors.password.name).toBe('ValidatorError');
-				expect(res.body.errors.password.message).toInclude('is shorter than the minimum allowed length');				
+				expect(res.body.errors.password.message).toInclude('is shorter than the minimum allowed length');
 			})
 			.end(done);
 	});
@@ -299,7 +317,7 @@ describe('POST /users/login', () => {
 				expect(res.headers['x-auth']).toExist();
 			})
 			.end((err) => {
-				if(err) {
+				if (err) {
 					return done(err);
 				}
 
@@ -342,7 +360,7 @@ describe('DELETE /users/me/token', () => {
 			.set('x-auth', users[0].tokens[0].token)
 			.expect(200)
 			.end((err) => {
-				if(err) {
+				if (err) {
 					return done(err);
 				}
 
@@ -359,7 +377,7 @@ describe('DELETE /users/me/token', () => {
 			.set('x-auth', users[0].tokens[0].token)
 			.expect(200)
 			.end((err) => {
-				if(err) {
+				if (err) {
 					return done(err);
 				}
 
